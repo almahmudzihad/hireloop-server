@@ -30,13 +30,27 @@ async function run() {
 
     const database = client.db("hireloop");
     const jobsCollection = database.collection("jobs");
-
-    app.post('/jobs', async (req, res) => {
-      const job = req.body;
-      const result = await jobsCollection.insertOne(job);
-      res.send(result);
+    app.get('/api/jobs', async (req, res) => {
+      const query = {};
+      if(req.query.companyId){
+        query.companyId = req.query.companyId;
+      }
+      if(req.query.status){
+        query.status = req.query.status;
+      }
+      const cursor = jobsCollection.find(query);
+      const jobs = await cursor.toArray();
+      res.send(jobs);
     })
-
+    app.post('/api/jobs', async (req, res) => {
+      try {
+        const job = req.body;
+        const result = await jobsCollection.insertOne(job);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ error: 'Failed to create job' });
+      }
+    });
 
 
     // Send a ping to confirm a successful connection
