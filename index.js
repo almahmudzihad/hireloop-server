@@ -9,7 +9,7 @@ app.use(express.json());
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  res.send('Hireloop server is running')
 })
 
 const uri = process.env.MONGODB_URI;
@@ -30,6 +30,8 @@ async function run() {
 
     const database = client.db("hireloop");
     const jobsCollection = database.collection("jobs");
+    const companiesCollection = database.collection("companies");
+
     app.get('/api/jobs', async (req, res) => {
       const query = {};
       if(req.query.companyId){
@@ -49,6 +51,21 @@ async function run() {
         res.send(result);
       } catch (error) {
         res.status(500).send({ error: 'Failed to create job' });
+      }
+    });
+    //companies
+    app.get('/api/companies', async (req, res) => {
+      const cursor = companiesCollection.find();
+      const companies = await cursor.toArray();
+      res.send(companies);
+    })
+    app.post('/api/companies', async (req, res) => {
+      try {
+        const company = req.body;
+        const result = await companiesCollection.insertOne(company);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ error: 'Failed to create company' });
       }
     });
 
