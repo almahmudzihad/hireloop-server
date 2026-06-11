@@ -47,18 +47,33 @@ async function run() {
     app.post('/api/jobs', async (req, res) => {
       try {
         const job = req.body;
-        const result = await jobsCollection.insertOne(job);
+        const newJob = {
+          ...job,
+          timestamp: new Date()
+        }
+        const result = await jobsCollection.insertOne(newJob);
         res.send(result);
       } catch (error) {
         res.status(500).send({ error: 'Failed to create job' });
       }
     });
     //companies
-    app.get('/api/companies', async (req, res) => {
-      const cursor = companiesCollection.find();
-      const companies = await cursor.toArray();
-      res.send(companies);
-    })
+    app.get('/api/my/companies', async (req, res) => {
+      try {
+        const query = {};
+
+        if (req.query.recruiterId) {
+          query.recruiterId = req.query.recruiterId;
+        }
+
+        const result = await companiesCollection.findOne(query);
+
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: 'Server error', error });
+      }
+    });
+    
     app.post('/api/companies', async (req, res) => {
       try {
         const company = req.body;
