@@ -6,7 +6,7 @@ require('dotenv').config();
 app.use(cors());
 app.use(express.json());
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 app.get('/', (req, res) => {
   res.send('Hireloop server is running')
@@ -43,6 +43,12 @@ async function run() {
       const cursor = jobsCollection.find(query);
       const jobs = await cursor.toArray();
       res.send(jobs);
+    });
+    app.get('/api/jobs/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const job = await jobsCollection.findOne(query);
+      res.send(job);
     })
     app.post('/api/jobs', async (req, res) => {
       try {
@@ -68,7 +74,7 @@ async function run() {
 
         const result = await companiesCollection.findOne(query);
 
-        res.send(result);
+        res.send(result || {});
       } catch (error) {
         res.status(500).send({ message: 'Server error', error });
       }
@@ -77,6 +83,10 @@ async function run() {
     app.post('/api/companies', async (req, res) => {
       try {
         const company = req.body;
+        const newCompany = {
+          ...company,
+          timestamp: new Date()
+        }
         const result = await companiesCollection.insertOne(company);
         res.send(result);
       } catch (error) {
