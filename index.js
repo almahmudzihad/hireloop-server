@@ -31,6 +31,7 @@ async function run() {
     const database = client.db("hireloop");
     const jobsCollection = database.collection("jobs");
     const companiesCollection = database.collection("companies");
+    const applicationsCollection = database.collection("applications");
 
     app.get('/api/jobs', async (req, res) => {
       const query = {};
@@ -91,6 +92,20 @@ async function run() {
         res.send(result);
       } catch (error) {
         res.status(500).send({ error: 'Failed to create company' });
+      }
+    });
+    //applicaions
+    app.post('/api/applications', async (req, res) => {
+      try {
+        const application = req.body;
+        const newApplication = {
+          ...application,
+          timestamp: new Date()
+        }
+        const result = await applicationsCollection.insertOne(newApplication);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ error: 'Failed to create application' });
       }
     });
 
