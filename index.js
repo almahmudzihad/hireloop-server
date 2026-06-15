@@ -33,6 +33,8 @@ async function run() {
     const companiesCollection = database.collection("companies");
     const applicationsCollection = database.collection("applications");
     const planCollection = database.collection("plans");
+    const subscriptionsCollection = database.collection("subscriptions");
+    const usersCollection = database.collection("user");
 
     app.get('/api/jobs', async (req, res) => {
       const query = {};
@@ -95,6 +97,12 @@ async function run() {
         res.status(500).send({ error: 'Failed to create company' });
       }
     });
+    app.get('/api/companies', async (req, res) => {
+            const cursor = companiesCollection.find();
+            const companies = await cursor.toArray();
+
+            res.send(companies);
+        })
 
     //applicaions
     app.get('/api/applications', async (req, res) => {
@@ -143,6 +151,26 @@ async function run() {
         res.send(result);
       } catch (error) {
         res.status(500).send({ error: 'Failed to create plan' });
+      }
+    });
+    //subcriptions
+    app.post('/api/subscriptions', async (req, res) => {
+      try {
+        const subscription = req.body;
+        const newSubscription = {
+          ...subscription,
+          createdAt: new Date()
+        }
+        const result = await subscriptionsCollection.insertOne(newSubscription);
+        //update user plan
+        const filter = {email : subscription.email};
+        const updateDoc = {
+          $set: { plan: subscription.planId}
+        }
+        const updateResult = await usersCollection.updateOne(filter, updateDoc);
+        res.send(updateResult);
+      } catch (error) {
+        res.status(500).send({ error: 'Failed to create subscription' });
       }
     });
 
