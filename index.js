@@ -102,7 +102,23 @@ async function run() {
             const companies = await cursor.toArray();
 
             res.send(companies);
-        })
+        });
+    app.patch('/api/companies/:id', async (req, res) => {
+      try {
+        const id = req.params.id;
+        const updatedCompany = req.body;
+        const filter = { _id: new ObjectId(id) };
+        const updateDoc = {
+          $set: {
+            status: updatedCompany.status
+          }
+        };
+        const result = await companiesCollection.updateOne(filter, updateDoc);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ error: 'Failed to update company' });
+      }
+    });
 
     //applicaions
     app.get('/api/applications', async (req, res) => {
