@@ -32,6 +32,7 @@ async function run() {
     const jobsCollection = database.collection("jobs");
     const companiesCollection = database.collection("companies");
     const applicationsCollection = database.collection("applications");
+    const planCollection = database.collection("plans");
 
     app.get('/api/jobs', async (req, res) => {
       const query = {};
@@ -94,7 +95,20 @@ async function run() {
         res.status(500).send({ error: 'Failed to create company' });
       }
     });
+
     //applicaions
+    app.get('/api/applications', async (req, res) => {
+      const query = {};
+      if(req.query.applicantId){
+        query.applicantId = req.query.applicantId;
+      }
+      if(req.query.jobId){
+        query.jobId = req.query.jobId;
+      }
+      const cursor = applicationsCollection.find(query);
+      const applications = await cursor.toArray();
+      res.send(applications);
+    })
     app.post('/api/applications', async (req, res) => {
       try {
         const application = req.body;
@@ -106,6 +120,29 @@ async function run() {
         res.send(result);
       } catch (error) {
         res.status(500).send({ error: 'Failed to create application' });
+      }
+    });
+
+    //plans
+    app.get('/api/plans', async (req, res) => {
+      const query = {};
+      if(req.query.plan_id){
+        query.id = req.query.plan_id;
+      }
+      const plan = await planCollection.findOne(query);
+      res.send(plan);
+    })
+    app.post('/api/plans', async (req, res) => {
+      try {
+        const plan = req.body;
+        const newPlan = {
+          ...plan,
+          timestamp: new Date()
+        }
+        const result = await planCollection.insertOne(newPlan);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ error: 'Failed to create plan' });
       }
     });
 
