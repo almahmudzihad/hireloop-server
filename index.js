@@ -12,6 +12,14 @@ app.get('/', (req, res) => {
   res.send('Hireloop server is running')
 })
 
+const logger = (req, res, next) => {
+  console.log(req.method, req.path, 'Time:', Date.now());
+  next();
+}
+const verifyToken = (req, res, next) => {
+  console.log(req.headers, "headers");
+  next();
+}
 const uri = process.env.MONGODB_URI;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -102,8 +110,23 @@ async function run() {
             const companies = await cursor.toArray();
 
             res.send(companies);
-        });
-    app.patch('/api/companies/:id', async (req, res) => {
+          });
+    //  app.get('/api/companies', async (req, res) => {
+    //         const cursor = companyCollection.find();
+    //         const companies = await cursor.toArray();
+
+    //         for (const company of companies) {
+    //             const filter = {
+    //                 companyId: company._id.toString()
+    //             }
+    //             const jobCount = await jobCollection.countDocuments(filter)
+    //             company.jobCount = jobCount
+    //         }
+
+    //         res.send(companies);
+    //     })
+      
+    app.patch('/api/companies/:id', logger, verifyToken, async (req, res) => {
       try {
         const id = req.params.id;
         const updatedCompany = req.body;
