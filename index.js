@@ -16,18 +16,7 @@ const logger = (req, res, next) => {
   console.log(req.method, req.path, 'Time:', Date.now());
   next();
 }
-const verifyToken = (req, res, next) => {
-  console.log(req.headers, "headers");
-  const authHeader = req.headers.authorization;
-  if(!authHeader){
-    return res.status(401).send({ error: 'Unauthorized' });
-  }
-  const token = authHeader.split(' ')[1];
-  if(!token){
-    return res.status(401).send({ error: 'Unauthorized' });
-  }
-  next();
-}
+
 const uri = process.env.MONGODB_URI;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -51,6 +40,25 @@ async function run() {
     const planCollection = database.collection("plans");
     const subscriptionsCollection = database.collection("subscriptions");
     const usersCollection = database.collection("user");
+    const sessionsCollection = database.collection("session");
+
+    //token
+    const verifyToken = async (req, res, next) => {
+      console.log(req.headers, "headers");
+      const authHeader = req.headers.authorization;
+      if(!authHeader){
+        return res.status(401).send({ error: 'Unauthorized' });
+      }
+      const token = authHeader.split(' ')[1];
+      if(!token){
+        return res.status(401).send({ error: 'Unauthorized' });
+      }
+      const query = { token: token } 
+      const session = await sessionsCollection.findOne(query);
+      console.log("mb session",session );
+
+      next();
+    }
 
     app.get('/api/jobs', async (req, res) => {
       const query = {};
