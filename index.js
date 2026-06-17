@@ -18,6 +18,14 @@ const logger = (req, res, next) => {
 }
 const verifyToken = (req, res, next) => {
   console.log(req.headers, "headers");
+  const authHeader = req.headers.authorization;
+  if(!authHeader){
+    return res.status(401).send({ error: 'Unauthorized' });
+  }
+  const token = authHeader.split(' ')[1];
+  if(!token){
+    return res.status(401).send({ error: 'Unauthorized' });
+  }
   next();
 }
 const uri = process.env.MONGODB_URI;
@@ -105,10 +113,10 @@ async function run() {
         res.status(500).send({ error: 'Failed to create company' });
       }
     });
-    app.get('/api/companies', async (req, res) => {
+    app.get('/api/companies',  verifyToken, async (req, res) => {
             const cursor = companiesCollection.find();
             const companies = await cursor.toArray();
-
+            
             res.send(companies);
           });
     //  app.get('/api/companies', async (req, res) => {
@@ -154,6 +162,7 @@ async function run() {
       }
       const cursor = applicationsCollection.find(query);
       const applications = await cursor.toArray();
+
       res.send(applications);
     })
     app.post('/api/applications', async (req, res) => {
