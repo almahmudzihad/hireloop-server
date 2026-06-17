@@ -55,8 +55,26 @@ async function run() {
       }
       const query = { token: token } 
       const session = await sessionsCollection.findOne(query);
-      console.log("mb session",session );
-
+      const userId = session.userId;
+      console.log("userid of the session ", userId  );
+      const userQuery = {
+        _id: userId
+      }
+      const user = await usersCollection.findOne(userQuery);
+      //set data to req user obj
+      req.user = user;
+      next();
+    }
+    const verifySeeker = async (req, res, next) => {
+      if(req.user.role !== 'seeker'){
+        return res.status(403).send({ error: 'Forbidden' });
+      }
+      next();
+    }
+    const verifyRecruiter = async (req, res, next) => {
+      if(req.user.role !== 'recruiter'){
+        return res.status(403).send({ error: 'Forbidden' });
+      }
       next();
     }
 
